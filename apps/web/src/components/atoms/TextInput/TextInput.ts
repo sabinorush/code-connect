@@ -12,7 +12,7 @@ export function createTextInput(props: TextInputProps): HTMLInputElement {
   input.name = props.name
   input.type = props.type ?? 'text'
   if (props.placeholder) input.placeholder = props.placeholder
-  if (props.autoComplete) input.autocomplete = props.autoComplete
+  if (props.autoComplete) input.setAttribute('autocomplete', props.autoComplete)
   input.className =
     'w-full rounded-lg bg-neutral-200/90 px-4 py-3 text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-green-400'
 
