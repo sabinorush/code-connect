@@ -11,7 +11,7 @@ Ao planejar a página de Cadastro (Figma node `155:3469`), o usuário pediu para
 
 ## Objetivo
 
-Migrar `apps/web` de vanilla TS para React 19 + TypeScript + Vite, com `react-router` (v7) cuidando da navegação, preservando o comportamento e a aparência atuais da LoginPage. Nenhum conteúdo novo de produto nesta etapa — é puramente uma migração de stack.
+Migrar `apps/web` de vanilla TS para React 19 + TypeScript + Vite, com `react-router` (v8) cuidando da navegação, preservando o comportamento e a aparência atuais da LoginPage. Nenhum conteúdo novo de produto nesta etapa — é puramente uma migração de stack.
 
 ## Fora do escopo
 
