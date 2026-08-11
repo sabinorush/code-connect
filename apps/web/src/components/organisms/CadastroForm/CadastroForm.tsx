@@ -1,4 +1,5 @@
 import type { FormEvent } from 'react'
+import { Alert } from '../../atoms/Alert/Alert'
 import { Button } from '../../atoms/Button/Button'
 import { Checkbox } from '../../atoms/Checkbox/Checkbox'
 import { Link } from '../../atoms/Link/Link'
@@ -20,9 +21,17 @@ export interface CadastroFormProps {
   onSubmit?: (data: CadastroFormData) => void
   onGithubLogin?: () => void
   onGmailLogin?: () => void
+  isSubmitting?: boolean
+  errorMessage?: string
 }
 
-export function CadastroForm({ onSubmit, onGithubLogin, onGmailLogin }: CadastroFormProps) {
+export function CadastroForm({
+  onSubmit,
+  onGithubLogin,
+  onGmailLogin,
+  isSubmitting = false,
+  errorMessage,
+}: CadastroFormProps) {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
@@ -39,17 +48,34 @@ export function CadastroForm({ onSubmit, onGithubLogin, onGmailLogin }: Cadastro
       <h1 className="text-3xl font-bold text-white">Cadastro</h1>
       <p className="text-neutral-400">Olá! Preencha seus dados.</p>
 
+      {errorMessage && <Alert message={errorMessage} />}
+
       <FormField
         label="Nome"
         htmlFor="name"
-        input={<TextInput id="name" name="name" placeholder="Nome completo" autoComplete="name" />}
+        input={
+          <TextInput
+            id="name"
+            name="name"
+            placeholder="Nome completo"
+            autoComplete="name"
+            disabled={isSubmitting}
+          />
+        }
       />
 
       <FormField
         label="Email"
         htmlFor="email"
         input={
-          <TextInput id="email" name="email" type="email" placeholder="Digite seu email" autoComplete="email" />
+          <TextInput
+            id="email"
+            name="email"
+            type="email"
+            placeholder="Digite seu email"
+            autoComplete="email"
+            disabled={isSubmitting}
+          />
         }
       />
 
@@ -63,17 +89,23 @@ export function CadastroForm({ onSubmit, onGithubLogin, onGmailLogin }: Cadastro
             type="password"
             placeholder="******"
             autoComplete="new-password"
+            disabled={isSubmitting}
           />
         }
       />
 
       <RememberMeRow
         checkboxId="remember-me"
-        checkbox={<Checkbox id="remember-me" name="rememberMe" checked />}
+        checkbox={<Checkbox id="remember-me" name="rememberMe" checked disabled={isSubmitting} />}
         checkboxLabel="Lembrar-me"
       />
 
-      <Button label="Cadastrar" type="submit" icon={<img src={arrowForwardIcon} alt="" className="h-4 w-4" />} />
+      <Button
+        label={isSubmitting ? 'Cadastrando...' : 'Cadastrar'}
+        type="submit"
+        disabled={isSubmitting}
+        icon={<img src={arrowForwardIcon} alt="" className="h-4 w-4" />}
+      />
 
       <div className="flex items-center gap-4 text-sm text-neutral-500">
         <span className="h-px flex-1 bg-neutral-700" />

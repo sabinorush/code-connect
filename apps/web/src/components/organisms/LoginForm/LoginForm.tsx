@@ -1,4 +1,5 @@
 import type { FormEvent } from 'react'
+import { Alert } from '../../atoms/Alert/Alert'
 import { Button } from '../../atoms/Button/Button'
 import { Checkbox } from '../../atoms/Checkbox/Checkbox'
 import { Link } from '../../atoms/Link/Link'
@@ -10,7 +11,7 @@ import arrowForwardIcon from '../../../assets/arrow-forward.svg'
 import assignmentIcon from '../../../assets/assignment.svg'
 
 export interface LoginFormData {
-  identifier: string
+  email: string
   password: string
   rememberMe: boolean
 }
@@ -19,14 +20,22 @@ export interface LoginFormProps {
   onSubmit?: (data: LoginFormData) => void
   onGithubLogin?: () => void
   onGmailLogin?: () => void
+  isSubmitting?: boolean
+  errorMessage?: string
 }
 
-export function LoginForm({ onSubmit, onGithubLogin, onGmailLogin }: LoginFormProps) {
+export function LoginForm({
+  onSubmit,
+  onGithubLogin,
+  onGmailLogin,
+  isSubmitting = false,
+  errorMessage,
+}: LoginFormProps) {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     onSubmit?.({
-      identifier: String(formData.get('identifier') ?? ''),
+      email: String(formData.get('email') ?? ''),
       password: String(formData.get('password') ?? ''),
       rememberMe: formData.has('rememberMe'),
     })
@@ -37,10 +46,21 @@ export function LoginForm({ onSubmit, onGithubLogin, onGmailLogin }: LoginFormPr
       <h1 className="text-3xl font-bold text-white">Login</h1>
       <p className="text-neutral-400">Boas-vindas! Faça seu login.</p>
 
+      {errorMessage && <Alert message={errorMessage} />}
+
       <FormField
-        label="Email ou usuário"
-        htmlFor="identifier"
-        input={<TextInput id="identifier" name="identifier" placeholder="usuario123" autoComplete="username" />}
+        label="Email"
+        htmlFor="email"
+        input={
+          <TextInput
+            id="email"
+            name="email"
+            type="email"
+            placeholder="Digite seu email"
+            autoComplete="email"
+            disabled={isSubmitting}
+          />
+        }
       />
 
       <FormField
@@ -53,18 +73,24 @@ export function LoginForm({ onSubmit, onGithubLogin, onGmailLogin }: LoginFormPr
             type="password"
             placeholder="******"
             autoComplete="current-password"
+            disabled={isSubmitting}
           />
         }
       />
 
       <RememberMeRow
         checkboxId="remember-me"
-        checkbox={<Checkbox id="remember-me" name="rememberMe" checked />}
+        checkbox={<Checkbox id="remember-me" name="rememberMe" checked disabled={isSubmitting} />}
         checkboxLabel="Lembrar-me"
         forgotPasswordHref="/recuperar-senha"
       />
 
-      <Button label="Login" type="submit" icon={<img src={arrowForwardIcon} alt="" className="h-4 w-4" />} />
+      <Button
+        label={isSubmitting ? 'Entrando...' : 'Login'}
+        type="submit"
+        disabled={isSubmitting}
+        icon={<img src={arrowForwardIcon} alt="" className="h-4 w-4" />}
+      />
 
       <div className="flex items-center gap-4 text-sm text-neutral-500">
         <span className="h-px flex-1 bg-neutral-700" />
