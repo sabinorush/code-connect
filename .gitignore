@@ -1,0 +1,8 @@
+# dependencies (root-level, hoisted by pnpm)
+node_modules
+
+# pnpm
+.pnpm-store/
+
+# build output
+dist/
