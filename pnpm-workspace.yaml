@@ -2,4 +2,5 @@ packages:
   - "apps/*"
 allowBuilds:
   '@scarf/scarf': true
+  msw: true
   unrs-resolver: true

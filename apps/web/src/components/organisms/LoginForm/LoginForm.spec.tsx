@@ -3,10 +3,10 @@ import { render, fireEvent } from '@testing-library/react'
 import { LoginForm } from './LoginForm'
 
 describe('LoginForm', () => {
-  it('renders the identifier and password fields, remember-me checked by default, and the submit button', () => {
+  it('renders the email and password fields, remember-me checked by default, and the submit button', () => {
     const { container } = render(<LoginForm />)
 
-    expect(container.querySelector('#identifier')).not.toBeNull()
+    expect(container.querySelector('#email')).not.toBeNull()
     expect(container.querySelector('#password')).not.toBeNull()
     expect((container.querySelector('#remember-me') as HTMLInputElement).checked).toBe(true)
     expect(container.querySelector('button[type="submit"]')?.textContent).toContain('Login')
@@ -16,9 +16,9 @@ describe('LoginForm', () => {
     const onSubmit = vi.fn()
     const { container } = render(<LoginForm onSubmit={onSubmit} />)
 
-    const identifier = container.querySelector<HTMLInputElement>('#identifier')!
+    const email = container.querySelector<HTMLInputElement>('#email')!
     const password = container.querySelector<HTMLInputElement>('#password')!
-    fireEvent.change(identifier, { target: { value: 'usuario123' } })
+    fireEvent.change(email, { target: { value: 'ada@example.com' } })
     fireEvent.change(password, { target: { value: 'segredo' } })
 
     const form = container.querySelector('form')!
@@ -26,7 +26,7 @@ describe('LoginForm', () => {
 
     expect(notCancelled).toBe(false)
     expect(onSubmit).toHaveBeenCalledWith({
-      identifier: 'usuario123',
+      email: 'ada@example.com',
       password: 'segredo',
       rememberMe: true,
     })
@@ -36,9 +36,9 @@ describe('LoginForm', () => {
     const onSubmit = vi.fn()
     const { container } = render(<LoginForm onSubmit={onSubmit} />)
 
-    const identifier = container.querySelector<HTMLInputElement>('#identifier')!
+    const email = container.querySelector<HTMLInputElement>('#email')!
     const password = container.querySelector<HTMLInputElement>('#password')!
-    fireEvent.change(identifier, { target: { value: 'usuario123' } })
+    fireEvent.change(email, { target: { value: 'ada@example.com' } })
     fireEvent.change(password, { target: { value: 'segredo' } })
     fireEvent.click(container.querySelector('#remember-me')!)
 
@@ -46,7 +46,7 @@ describe('LoginForm', () => {
     fireEvent.submit(form)
 
     expect(onSubmit).toHaveBeenCalledWith({
-      identifier: 'usuario123',
+      email: 'ada@example.com',
       password: 'segredo',
       rememberMe: false,
     })
@@ -63,5 +63,16 @@ describe('LoginForm', () => {
 
     expect(onGithubLogin).toHaveBeenCalledOnce()
     expect(onGmailLogin).toHaveBeenCalledOnce()
+  })
+
+  it('shows the error message and disables the fields while submitting', () => {
+    const { container } = render(<LoginForm isSubmitting errorMessage="Email ou senha inválidos." />)
+
+    expect(container.querySelector('[role="alert"]')?.textContent).toBe('Email ou senha inválidos.')
+    expect((container.querySelector('#email') as HTMLInputElement).disabled).toBe(true)
+    expect((container.querySelector('#password') as HTMLInputElement).disabled).toBe(true)
+    expect((container.querySelector('#remember-me') as HTMLInputElement).disabled).toBe(true)
+    expect((container.querySelector('button[type="submit"]') as HTMLButtonElement).disabled).toBe(true)
+    expect(container.querySelector('button[type="submit"]')?.textContent).toContain('Entrando...')
   })
 })

@@ -69,4 +69,16 @@ describe('CadastroForm', () => {
     expect(links[0].textContent).toContain('Faça seu login!')
     expect(links[0].getAttribute('href')).toBe('/login')
   })
+
+  it('shows the error message and disables the fields while submitting', () => {
+    const { container } = render(<CadastroForm isSubmitting errorMessage="Este email já está cadastrado." />)
+
+    expect(container.querySelector('[role="alert"]')?.textContent).toBe('Este email já está cadastrado.')
+    expect((container.querySelector('#name') as HTMLInputElement).disabled).toBe(true)
+    expect((container.querySelector('#email') as HTMLInputElement).disabled).toBe(true)
+    expect((container.querySelector('#password') as HTMLInputElement).disabled).toBe(true)
+    expect((container.querySelector('#remember-me') as HTMLInputElement).disabled).toBe(true)
+    expect((container.querySelector('button[type="submit"]') as HTMLButtonElement).disabled).toBe(true)
+    expect(container.querySelector('button[type="submit"]')?.textContent).toContain('Cadastrando...')
+  })
 })
