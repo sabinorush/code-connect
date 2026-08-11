@@ -14,8 +14,14 @@ async function bootstrap() {
     }),
   );
 
+  // Comma-separated so a second Vite instance (which auto-increments to
+  // 5174, 5175, ... when 5173 is already taken) doesn't get CORS-blocked.
+  const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
+    .split(',')
+    .map((origin) => origin.trim());
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
+    origin: corsOrigins,
   });
 
   const swaggerConfig = new DocumentBuilder()
