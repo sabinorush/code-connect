@@ -62,10 +62,10 @@ describe('UsersController', () => {
   });
 
   describe('getMe', () => {
-    it('returns the user matching the authenticated id', () => {
-      usersService.findById.mockReturnValue(user);
+    it('returns the user matching the authenticated id', async () => {
+      usersService.findById.mockResolvedValue(user);
 
-      const result = controller.getMe({ id: user.id, email: user.email });
+      const result = await controller.getMe({ id: user.id, email: user.email });
 
       expect(usersService.findById).toHaveBeenCalledWith(user.id);
       expect(result).toMatchObject({

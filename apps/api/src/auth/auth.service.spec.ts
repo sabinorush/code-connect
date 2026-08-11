@@ -46,7 +46,7 @@ describe('AuthService', () => {
   });
 
   it('returns a signed session for the right credentials', async () => {
-    usersService.findByEmail.mockReturnValue(user);
+    usersService.findByEmail.mockResolvedValue(user);
 
     const session = await service.login({
       email: user.email,
@@ -65,7 +65,7 @@ describe('AuthService', () => {
   });
 
   it('rejects an unknown email', async () => {
-    usersService.findByEmail.mockReturnValue(undefined);
+    usersService.findByEmail.mockResolvedValue(null);
 
     await expect(
       service.login({
@@ -76,7 +76,7 @@ describe('AuthService', () => {
   });
 
   it('rejects a wrong password with the same message as an unknown email', async () => {
-    usersService.findByEmail.mockReturnValue(user);
+    usersService.findByEmail.mockResolvedValue(user);
 
     await expect(
       service.login({ email: user.email, password: 'wrong-password' }),

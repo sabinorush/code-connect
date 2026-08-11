@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
+import { DataSource } from 'typeorm';
 import { AppModule } from './../src/app.module';
 
 interface UserResponseBody {
@@ -31,11 +32,10 @@ describe('Auth (e2e)', () => {
   };
 
   beforeAll(async () => {
-    // Set explicitly rather than relying on a local .env file, so this
-    // suite passes the same way in CI as it does locally.
-    process.env.JWT_SECRET = 'e2e-test-secret';
-    process.env.JWT_EXPIRES_IN = '3600';
-
+    // DATABASE_URL / JWT_SECRET / JWT_EXPIRES_IN come from
+    // test/setup-e2e.ts (jest-e2e.json's `setupFiles`), pointed at the
+    // dedicated code_connect_test database so this suite never touches
+    // development data.
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -49,6 +49,10 @@ describe('Auth (e2e)', () => {
       }),
     );
     await app.init();
+
+    // Truncate rather than relying on unique test data, so the suite is
+    // repeatable across runs without a manual reset step.
+    await app.get(DataSource).query('TRUNCATE TABLE "users" CASCADE');
   });
 
   afterAll(async () => {

@@ -71,7 +71,7 @@ describe('AuthGuard', () => {
       sub: user.id,
       email: user.email,
     });
-    usersService.findById.mockReturnValue(undefined);
+    usersService.findById.mockResolvedValue(null);
     const { context } = contextWithHeader('Bearer good-token');
 
     await expect(guard.canActivate(context)).rejects.toThrow(
@@ -84,7 +84,7 @@ describe('AuthGuard', () => {
       sub: user.id,
       email: user.email,
     });
-    usersService.findById.mockReturnValue(user);
+    usersService.findById.mockResolvedValue(user);
     const { context, request } = contextWithHeader('Bearer good-token');
 
     await expect(guard.canActivate(context)).resolves.toBe(true);
