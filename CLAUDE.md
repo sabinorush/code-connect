@@ -53,6 +53,8 @@ The `web` app's test setup (Vitest + Testing Library) is in place — see Conven
 
 - **Atomic design**: organize components as atoms → molecules → organisms → templates → pages (e.g. `src/components/{atoms,molecules,organisms,templates}`). Keep components small and composed from the layer below; don't let a molecule reach past its atoms into organism-level concerns.
 - **Tailwind**: use Tailwind utility classes for styling; avoid introducing a second styling approach (raw CSS files, CSS-in-JS) once Tailwind is in place. `apps/web/src/style.css` predates this convention — fold it into Tailwind rather than extending it with more plain CSS.
+- **Colors**: never write raw hex as an arbitrary Tailwind value (`bg-[#888888]`, `text-[#171d1f]`). The project's palette (sourced from Figma) is defined once as theme tokens in `apps/web/src/style.css` via Tailwind v4's `@theme` block — `gray-medium`, `gray-dark`, `offwhite`, `graphite`, `petroleum`, `accent-green` — and used as regular utilities (`bg-gray-medium`, `text-gray-dark`, etc.). If a design calls for a color not yet in that palette, add it to the `@theme` block first (check Figma for the exact hex via the Figma MCP), then consume it as a token — don't inline the hex at the call site.
+- **Sizes**: don't hardcode arbitrary pixel values (`text-[15px]`, `w-[123px]`). Use the closest token from Tailwind's default scale (`text-sm`, `text-base`, `p-4`, etc.) instead of customizing to match a design spec exactly — a 1px difference from Figma is not worth a one-off arbitrary value.
 - **Every component needs a test** covering its essential usage (renders correctly, core interaction/behavior works). Add a component and its test in the same change — don't land one without the other.
 
 ### Backend (apps/api)
