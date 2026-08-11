@@ -32,7 +32,7 @@ export class AuthService {
     email: string,
     password: string,
   ): Promise<User> {
-    const user = this.usersService.findByEmail(email);
+    const user = await this.usersService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException(INVALID_CREDENTIALS_MESSAGE);
     }

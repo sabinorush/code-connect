@@ -50,11 +50,13 @@ export class UsersController {
   @ApiOperation({ summary: 'Get the currently authenticated user' })
   @ApiOkResponse({ description: 'The logged-in user', type: UserResponseDto })
   @ApiUnauthorizedResponse({ description: 'Missing, invalid or expired token' })
-  getMe(@CurrentUser() currentUser: AuthenticatedUser): UserResponseDto {
+  async getMe(
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<UserResponseDto> {
     // AuthGuard just confirmed this user exists (and there is no
     // delete endpoint that could remove it in between), so the
     // non-null assertion is safe here.
-    const user = this.usersService.findById(currentUser.id)!;
+    const user = (await this.usersService.findById(currentUser.id))!;
     return UserResponseDto.fromEntity(user);
   }
 }

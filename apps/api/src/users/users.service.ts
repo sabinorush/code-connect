@@ -1,45 +1,56 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
+import { QueryFailedError, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 
 const SALT_ROUNDS = 10;
 
+// Postgres error code for a unique-constraint violation.
+const UNIQUE_VIOLATION = '23505';
+
 /**
- * In-memory user store. This is the single place that owns the `users`
- * array — no other class should touch it directly. Swapping this for a
- * real repository (ORM/database) later should only require changes
- * inside this file.
+ * Persists users through the `users` table via TypeORM. This is the
+ * single place that talks to the `usersRepository` — no other class
+ * should inject it directly.
  */
 @Injectable()
 export class UsersService {
-  private readonly users: User[] = [];
+  constructor(
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const existing = this.findByEmail(createUserDto.email);
-    if (existing) {
-      throw new ConflictException('Email already registered');
-    }
-
-    const user: User = {
-      id: randomUUID(),
+    const user = this.usersRepository.create({
       name: createUserDto.name,
-      email: createUserDto.email,
+      email: createUserDto.email.toLowerCase(),
       passwordHash: await bcrypt.hash(createUserDto.password, SALT_ROUNDS),
-      createdAt: new Date(),
-    };
+    });
 
-    this.users.push(user);
-    return user;
+    try {
+      return await this.usersRepository.save(user);
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        throw new ConflictException('Email already registered');
+      }
+      throw error;
+    }
   }
 
-  findByEmail(email: string): User | undefined {
-    const normalized = email.toLowerCase();
-    return this.users.find((user) => user.email.toLowerCase() === normalized);
+  findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOneBy({ email: email.toLowerCase() });
   }
 
-  findById(id: string): User | undefined {
-    return this.users.find((user) => user.id === id);
+  findById(id: string): Promise<User | null> {
+    return this.usersRepository.findOneBy({ id });
   }
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    error instanceof QueryFailedError &&
+    (error as QueryFailedError & { code?: string }).code === UNIQUE_VIOLATION
+  );
 }
