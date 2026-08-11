@@ -1,3 +1,4 @@
+import { fireEvent } from '@testing-library/dom'
 import { describe, expect, it, vi } from 'vitest'
 import { createCheckbox } from './Checkbox'
 
@@ -19,8 +20,8 @@ describe('createCheckbox', () => {
     const onChange = vi.fn()
     const checkbox = createCheckbox({ id: 'remember-me', name: 'rememberMe', onChange })
 
-    checkbox.click()
-    checkbox.dispatchEvent(new Event('change'))
+    checkbox.checked = true
+    fireEvent.change(checkbox)
 
     expect(onChange).toHaveBeenCalledWith(true)
   })
