@@ -4,13 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-This is an early-stage pnpm monorepo currently holding two unmodified framework scaffolds (NestJS API, Vite/TS web) plus a set of design asset folders at the repo root (`Imagens Cards/`, `Imagens Gerais/`, `Logo/`, `Ícones/`) that aren't wired into either app yet. There is no shared application code between `api` and `web` yet.
+This is an early-stage pnpm monorepo. `apps/web` is still close to its Vite/TS scaffold (Login/Cadastro screens exist but don't call the API yet). `apps/api` has moved past scaffold: it exposes signup/login/current-user endpoints (`POST /users`, `POST /sessions`, `GET /users/me`) documented via Swagger at `/docs`, backed by Postgres through TypeORM (see Architecture notes). There is no shared application code between `api` and `web` yet, and the frontend has not been wired up to call the API. There's also a set of design asset folders at the repo root (`Imagens Cards/`, `Imagens Gerais/`, `Logo/`, `Ícones/`) that aren't wired into either app.
 
 ## Repository structure
 
-- `apps/api` — NestJS backend (TypeScript, Express platform).
+- `apps/api` — NestJS backend (TypeScript, Express platform), persisting to Postgres via TypeORM.
 - `apps/web` — React 19 + TypeScript + Vite frontend, with `react-router` handling navigation.
-- Root `package.json` only holds pnpm-workspace passthrough scripts (`web:*`, `api:*`); there is no root build/test/lint aggregator.
+- `docker-compose.yml` (root) — local Postgres for `apps/api`, with a named volume (`postgres-data`) so data survives `docker compose down`. `docker/postgres/init/` seeds a separate `code_connect_test` database used only by `apps/api`'s e2e suite.
+- Root `package.json` only holds pnpm-workspace passthrough scripts (`web:*`, `api:*`, `db:*`); there is no root build/test/lint aggregator.
 - Workspace is defined in `pnpm-workspace.yaml` (`apps/*`). Use pnpm for all installs — do not use npm/yarn, and run installs from the repo root so hoisting stays correct.
 
 ## Commands
@@ -29,22 +30,31 @@ pnpm api:build         # nest build
 pnpm api:start         # run built api from dist (production mode)
 pnpm api:lint          # eslint --fix over api src/apps/libs/test
 pnpm api:test          # jest unit tests for api
+pnpm api:migration:run # apply pending TypeORM migrations
+
+pnpm db:up             # start local Postgres (docker compose up -d)
+pnpm db:down           # stop it (volume is preserved; use `docker compose down -v` to wipe it)
+pnpm db:logs           # tail the Postgres container logs
 ```
 
-For commands not exposed at the root (e2e tests, coverage, single-test runs), `cd apps/api` and use the underlying scripts directly:
+`apps/api` needs `DATABASE_URL` set (see `apps/api/.env.example`) and a reachable Postgres — run `pnpm db:up` before `pnpm api:dev` or any `apps/api` test that boots the full `AppModule`.
+
+For commands not exposed at the root (e2e tests, coverage, single-test runs, migrations), `cd apps/api` and use the underlying scripts directly:
 
 ```bash
-pnpm test:e2e                    # jest e2e suite (test/jest-e2e.json config)
+pnpm test:e2e                    # jest e2e suite (test/jest-e2e.json config); needs Postgres running
 pnpm test:cov                    # jest with coverage
 pnpm test -- app.controller      # run a single spec by name pattern
 pnpm test:watch                  # jest watch mode
+pnpm migration:generate src/database/migrations/SomeName  # diff entities against the live DB and generate a migration
+pnpm migration:revert                                      # roll back the last applied migration
 ```
 
 The `web` app's test setup (Vitest + Testing Library) is in place — see Conventions below for where specs live.
 
 ## Architecture notes
 
-- **apps/api**: standard NestJS module structure — `AppModule` wires `AppController`/`AppService` in `src/app.module.ts`. Jest config lives inline in `apps/api/package.json` (`rootDir: src`, specs matched via `*.spec.ts` next to the source they test). E2E specs live separately under `apps/api/test` with their own `jest-e2e.json` config. ESLint (`apps/api/eslint.config.mjs`) runs typescript-eslint's `recommendedTypeChecked` plus `eslint-plugin-prettier`; `no-explicit-any` is disabled, and `no-floating-promises`/`no-unsafe-argument` are downgraded to warnings.
+- **apps/api**: standard NestJS module structure — `AppModule` wires `AppController`/`AppService`, `DatabaseModule`, `UsersModule` and `AuthModule` in `src/app.module.ts`. Persistence is Postgres via TypeORM (`@nestjs/typeorm`), not in-memory: `DatabaseModule` (`src/database/database.module.ts`) opens the connection from `DATABASE_URL` (`ConfigService.getOrThrow`, so a missing env var fails the boot rather than connecting to `undefined`), with `synchronize: false` and `migrationsRun: true` — schema changes always go through a migration under `src/database/migrations/`, generated/run via the `migration:*` scripts against `src/database/data-source.ts` (a standalone `DataSource` used only by the TypeORM CLI, outside Nest's DI). `UsersService` (`src/users/users.service.ts`) is the sole owner of the `users` repository — other modules go through it rather than injecting `Repository<User>` directly. Auth is a custom `AuthGuard` + `@nestjs/jwt` (the Nest docs' "Authentication" pattern, no Passport); endpoints and DTOs are documented for Swagger at `/docs`. Jest config lives inline in `apps/api/package.json` (`rootDir: src`, specs matched via `*.spec.ts` next to the source they test) — unit specs mock the repository via `getRepositoryToken`, so they need no database. E2E specs live separately under `apps/api/test` with their own `jest-e2e.json` config; `test/setup-e2e.ts` points `DATABASE_URL` at a dedicated `code_connect_test` database (seeded by `docker/postgres/init/`) before any spec runs, since e2e specs boot the real `AppModule` and need Postgres reachable. ESLint (`apps/api/eslint.config.mjs`) runs typescript-eslint's `recommendedTypeChecked` plus `eslint-plugin-prettier`; `no-explicit-any` is disabled, and `no-floating-promises`/`no-unsafe-argument` are downgraded to warnings.
 - **apps/web**: React 19 + TypeScript + Vite, with `react-router` for navigation. `src/main.tsx` is the entry point — it mounts a `createBrowserRouter`/`RouterProvider` tree (routes for `/`, `/login`, and a catch-all `NotFound`) into `#app` via `createRoot`. Components are React functional components composed via JSX, organized per the atomic-design convention below. `apps/web/tsconfig.json` uses bundler module resolution with `verbatimModuleSyntax`, `noUnusedLocals`, and `noUnusedParameters` enabled, so unused imports/locals will fail `tsc` (and thus `web:build`). Vitest + `@testing-library/react`/`@testing-library/jest-dom` is configured in `apps/web/vite.config.ts` (jsdom environment, setup file at `src/test/setup.ts`); tests live as `ComponentName.spec.tsx` beside each component.
 
 ## Conventions

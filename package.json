@@ -10,6 +10,10 @@
     "api:build": "pnpm --filter api build",
     "api:start": "pnpm --filter api start:prod",
     "api:lint": "pnpm --filter api lint",
-    "api:test": "pnpm --filter api test"
+    "api:test": "pnpm --filter api test",
+    "api:migration:run": "pnpm --filter api migration:run",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres"
   }
 }

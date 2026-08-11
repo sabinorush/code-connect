@@ -59,7 +59,7 @@ export class AuthGuard implements CanActivate {
     // The token may be validly signed yet reference a user that no
     // longer exists in memory (e.g. the API restarted). Treat that
     // the same as an invalid token.
-    const user = this.usersService.findById(payload.sub);
+    const user = await this.usersService.findById(payload.sub);
     if (!user) {
       throw new UnauthorizedException('User no longer exists');
     }
