@@ -21,12 +21,14 @@
     "axe-core": "^4.13.0",
     "jest-axe": "^11.0.0",
     "jsdom": "^30.0.1",
+    "msw": "^2.15.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.2.0",
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "axios": "^1.19.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router": "^8.3.0"
