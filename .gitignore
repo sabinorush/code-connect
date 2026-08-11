@@ -6,3 +6,11 @@ node_modules
 
 # build output
 dist/
+
+# Claude
+docs
+.claude
+CLAUDE.md
+
+#environment
+.env

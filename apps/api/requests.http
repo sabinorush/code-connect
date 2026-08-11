@@ -1,0 +1,82 @@
+@baseUrl = http://localhost:3000
+
+### Cadastro — sucesso (201)
+# @name signup
+POST {{baseUrl}}/users HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Ada Lovelace",
+  "email": "ada@example.com",
+  "password": "super-secret-1"
+}
+
+### Cadastro — email duplicado (409)
+POST {{baseUrl}}/users HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Ada Lovelace",
+  "email": "ada@example.com",
+  "password": "super-secret-1"
+}
+
+### Cadastro — payload inválido: email malformado e senha curta (400)
+POST {{baseUrl}}/users HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "A",
+  "email": "not-an-email",
+  "password": "123"
+}
+
+### Cadastro — campo extra não permitido pelo whitelist (400)
+POST {{baseUrl}}/users HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Ada Lovelace",
+  "email": "ada2@example.com",
+  "password": "super-secret-1",
+  "isAdmin": true
+}
+
+### Login — credenciais corretas (201)
+# @name login
+POST {{baseUrl}}/sessions HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "ada@example.com",
+  "password": "super-secret-1"
+}
+
+### Login — senha errada (401, mensagem genérica)
+POST {{baseUrl}}/sessions HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "ada@example.com",
+  "password": "senha-errada"
+}
+
+### Login — email inexistente (401, mesma mensagem genérica)
+POST {{baseUrl}}/sessions HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "ninguem@example.com",
+  "password": "super-secret-1"
+}
+
+### Usuário logado — com token válido do login acima (200)
+GET {{baseUrl}}/users/me HTTP/1.1
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Usuário logado — sem header Authorization (401)
+GET {{baseUrl}}/users/me HTTP/1.1
+
+### Usuário logado — token malformado/inválido (401)
+GET {{baseUrl}}/users/me HTTP/1.1
+Authorization: Bearer token-invalido
