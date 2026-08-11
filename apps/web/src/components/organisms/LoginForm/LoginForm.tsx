@@ -28,7 +28,7 @@ export function LoginForm({ onSubmit, onGithubLogin, onGmailLogin }: LoginFormPr
     onSubmit?.({
       identifier: String(formData.get('identifier') ?? ''),
       password: String(formData.get('password') ?? ''),
-      rememberMe: formData.get('rememberMe') === 'on',
+      rememberMe: formData.has('rememberMe'),
     })
   }
 

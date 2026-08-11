@@ -32,6 +32,26 @@ describe('LoginForm', () => {
     })
   })
 
+  it('submits rememberMe: false when the checkbox is unchecked before submitting', () => {
+    const onSubmit = vi.fn()
+    const { container } = render(<LoginForm onSubmit={onSubmit} />)
+
+    const identifier = container.querySelector<HTMLInputElement>('#identifier')!
+    const password = container.querySelector<HTMLInputElement>('#password')!
+    fireEvent.change(identifier, { target: { value: 'usuario123' } })
+    fireEvent.change(password, { target: { value: 'segredo' } })
+    fireEvent.click(container.querySelector('#remember-me')!)
+
+    const form = container.querySelector('form')!
+    fireEvent.submit(form)
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      identifier: 'usuario123',
+      password: 'segredo',
+      rememberMe: false,
+    })
+  })
+
   it('calls onGithubLogin and onGmailLogin when the respective social buttons are clicked', () => {
     const onGithubLogin = vi.fn()
     const onGmailLogin = vi.fn()
