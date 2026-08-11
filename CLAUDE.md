@@ -9,7 +9,7 @@ This is an early-stage pnpm monorepo currently holding two unmodified framework 
 ## Repository structure
 
 - `apps/api` — NestJS backend (TypeScript, Express platform).
-- `apps/web` — Vite + vanilla TypeScript frontend (no framework yet).
+- `apps/web` — React 19 + TypeScript + Vite frontend, with `react-router` handling navigation.
 - Root `package.json` only holds pnpm-workspace passthrough scripts (`web:*`, `api:*`); there is no root build/test/lint aggregator.
 - Workspace is defined in `pnpm-workspace.yaml` (`apps/*`). Use pnpm for all installs — do not use npm/yarn, and run installs from the repo root so hoisting stays correct.
 
@@ -40,12 +40,12 @@ pnpm test -- app.controller      # run a single spec by name pattern
 pnpm test:watch                  # jest watch mode
 ```
 
-The `web` app has no test setup yet — a test runner must be added as part of adopting the per-component testing convention below.
+The `web` app's test setup (Vitest + Testing Library) is in place — see Conventions below for where specs live.
 
 ## Architecture notes
 
 - **apps/api**: standard NestJS module structure — `AppModule` wires `AppController`/`AppService` in `src/app.module.ts`. Jest config lives inline in `apps/api/package.json` (`rootDir: src`, specs matched via `*.spec.ts` next to the source they test). E2E specs live separately under `apps/api/test` with their own `jest-e2e.json` config. ESLint (`apps/api/eslint.config.mjs`) runs typescript-eslint's `recommendedTypeChecked` plus `eslint-plugin-prettier`; `no-explicit-any` is disabled, and `no-floating-promises`/`no-unsafe-argument` are downgraded to warnings.
-- **apps/web**: no framework — `src/main.ts` renders markup directly into `#app` via template strings. `apps/web/tsconfig.json` uses bundler module resolution with `verbatimModuleSyntax`, `noUnusedLocals`, and `noUnusedParameters` enabled, so unused imports/locals will fail `tsc` (and thus `web:build`). Neither Tailwind nor an atomic-design folder structure is set up yet — see Conventions below for the target structure to grow into.
+- **apps/web**: React 19 + TypeScript + Vite, with `react-router` for navigation. `src/main.tsx` is the entry point — it mounts a `createBrowserRouter`/`RouterProvider` tree (routes for `/`, `/login`, and a catch-all `NotFound`) into `#app` via `createRoot`. Components are React functional components composed via JSX, organized per the atomic-design convention below. `apps/web/tsconfig.json` uses bundler module resolution with `verbatimModuleSyntax`, `noUnusedLocals`, and `noUnusedParameters` enabled, so unused imports/locals will fail `tsc` (and thus `web:build`). Vitest + `@testing-library/react`/`@testing-library/jest-dom` is configured in `apps/web/vite.config.ts` (jsdom environment, setup file at `src/test/setup.ts`); tests live as `ComponentName.spec.tsx` beside each component.
 
 ## Conventions
 
