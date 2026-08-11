@@ -20,9 +20,10 @@ describe('createCheckbox', () => {
     const onChange = vi.fn()
     const checkbox = createCheckbox({ id: 'remember-me', name: 'rememberMe', onChange })
 
-    checkbox.checked = true
+    checkbox.click()
     fireEvent.change(checkbox)
 
+    expect(checkbox.checked).toBe(true)
     expect(onChange).toHaveBeenCalledWith(true)
   })
 })
