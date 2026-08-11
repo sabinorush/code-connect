@@ -5,7 +5,7 @@ export interface RememberMeRowProps {
   checkboxId: string
   checkbox: ReactNode
   checkboxLabel: string
-  forgotPasswordHref: string
+  forgotPasswordHref?: string
 }
 
 export function RememberMeRow({ checkboxId, checkbox, checkboxLabel, forgotPasswordHref }: RememberMeRowProps) {
@@ -15,7 +15,7 @@ export function RememberMeRow({ checkboxId, checkbox, checkboxLabel, forgotPassw
         {checkbox}
         <span>{checkboxLabel}</span>
       </label>
-      <Link label="Esqueci a senha" href={forgotPasswordHref} />
+      {forgotPasswordHref && <Link label="Esqueci a senha" href={forgotPasswordHref} />}
     </div>
   )
 }

@@ -21,4 +21,18 @@ describe('RememberMeRow', () => {
     expect(link.textContent).toContain('Esqueci a senha')
     expect(link.getAttribute('href')).toBe('/recuperar-senha')
   })
+
+  it('renders without a forgot-password link when forgotPasswordHref is omitted', () => {
+    const { container } = render(
+      <RememberMeRow
+        checkboxId="remember-me"
+        checkbox={<Checkbox id="remember-me" name="rememberMe" checked />}
+        checkboxLabel="Lembrar-me"
+      />,
+    )
+
+    expect(container.textContent).toContain('Lembrar-me')
+    expect(container.querySelector('#remember-me')).not.toBeNull()
+    expect(container.querySelector('a')).toBeNull()
+  })
 })
